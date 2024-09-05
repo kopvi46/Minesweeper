@@ -856,6 +856,7 @@ MonoBehaviour:
   isOpen: 0
   isMarked: 0
   mineAroundVisual: {fileID: 6088484727975766778}
+  background: {fileID: 2643726726475390509}
   overlay: {fileID: 2751662152005942924}
   mark: {fileID: 7124729545347436663}
   mine: {fileID: 5617214598433851951}

@@ -1,8 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class GridCell : MonoBehaviour
@@ -15,25 +12,25 @@ public class GridCell : MonoBehaviour
     [HideInInspector] public bool isMarked;
 
     public TextMeshProUGUI mineAroundVisual;
+    public Image background;
     public Image overlay;
     public Transform mark;
     public Transform mine;
 
     private void Start()
     {
-        //mine.gameObject.SetActive(isMined);
         foreach (Transform child in mine.transform)
         {
             child.gameObject.SetActive(isMined);
         }
 
-        //mark.gameObject.SetActive(false);
         foreach (Transform child in mark.transform)
         {
             child.gameObject.SetActive(false);
         }
 
-        if (!isMined && mineAround >= 1)
+        //Change color for mineAroundVisual or hide it
+        if (!isMined && mineAround > 0)
         {
             mineAroundVisual.text = mineAround.ToString();
             switch (mineAround)
