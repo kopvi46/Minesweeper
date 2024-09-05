@@ -60,6 +60,9 @@ public class MyGrid : MonoBehaviour
             Debug.Log("You have won!");
             
             _isGameOver = true;
+
+            colorBlock.normalColor = Color.green;
+            _restartButton.colors = colorBlock;
         }
     }
 
@@ -101,7 +104,7 @@ public class MyGrid : MonoBehaviour
 
     private void StartNewGame()
     {
-        colorBlock.normalColor = Color.green;
+        colorBlock.normalColor = Color.yellow;
         _restartButton.colors = colorBlock;
         _isGameOver = false;
 
