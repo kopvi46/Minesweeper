@@ -16,14 +16,22 @@ public class GridCell : MonoBehaviour
 
     public TextMeshProUGUI mineAroundVisual;
     public Image overlay;
-    public Image mark;
-    public Image mine;
+    public Transform mark;
+    public Transform mine;
 
     private void Start()
     {
-        mine.gameObject.SetActive(isMined);
+        //mine.gameObject.SetActive(isMined);
+        foreach (Transform child in mine.transform)
+        {
+            child.gameObject.SetActive(isMined);
+        }
 
-        mark.gameObject.SetActive(false);
+        //mark.gameObject.SetActive(false);
+        foreach (Transform child in mark.transform)
+        {
+            child.gameObject.SetActive(false);
+        }
 
         if (!isMined && mineAround >= 1)
         {

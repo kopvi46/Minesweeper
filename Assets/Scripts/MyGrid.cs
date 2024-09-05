@@ -25,18 +25,20 @@ public class MyGrid : MonoBehaviour
     [SerializeField] private Transform _gridCellPrefab;
     [SerializeField] private TextMeshProUGUI _mineLeftAmountVisual;
     [SerializeField] private Button _restartButton;
+    [SerializeField] private TextMeshProUGUI _gameTimerVisual;
 
     private GridCell[,] _gridArray;
     private int _mineLeftAmount;
     private int _closedCellCount;
     private bool _isGameOver = false;
-    private ColorBlock colorBlock;
+    private ColorBlock _colorBlock;
+    private float _gameTimer;
 
     private void Start()
     {
         transform.position -= new Vector3(_width / 2, _height / 2, 0);
 
-        colorBlock = _restartButton.colors;
+        _colorBlock = _restartButton.colors;
 
         StartNewGame();
 
@@ -51,8 +53,8 @@ public class MyGrid : MonoBehaviour
 
             _isGameOver = true;
 
-            colorBlock.normalColor = Color.red;
-            _restartButton.colors = colorBlock;
+            _colorBlock.normalColor = Color.red;
+            _restartButton.colors = _colorBlock;
         }
 
         if (_closedCellCount == _maxMineAmount)
@@ -61,8 +63,8 @@ public class MyGrid : MonoBehaviour
             
             _isGameOver = true;
 
-            colorBlock.normalColor = Color.green;
-            _restartButton.colors = colorBlock;
+            _colorBlock.normalColor = Color.green;
+            _restartButton.colors = _colorBlock;
         }
     }
 
@@ -87,7 +89,12 @@ public class MyGrid : MonoBehaviour
             {
                 currentGridCell.isMarked = !currentGridCell.isMarked;
 
-                currentGridCell.mark.gameObject.SetActive(currentGridCell.isMarked);
+                //currentGridCell.mark.gameObject.SetActive(currentGridCell.isMarked);
+
+                foreach (Transform child in currentGridCell.mark.transform)
+                {
+                    child.gameObject.SetActive(currentGridCell.isMarked);
+                }
 
                 if (currentGridCell.isMarked)
                 {
@@ -100,13 +107,22 @@ public class MyGrid : MonoBehaviour
                 _mineLeftAmountVisual.text = _mineLeftAmount.ToString();
             }
         }
+
+        if (!_isGameOver && _closedCellCount < (_width * _height))
+        {
+            _gameTimer += Time.deltaTime;
+            int time = (int)_gameTimer;
+            _gameTimerVisual.text = time.ToString();
+        }
     }
 
     private void StartNewGame()
     {
-        colorBlock.normalColor = Color.yellow;
-        _restartButton.colors = colorBlock;
+        _colorBlock.normalColor = Color.yellow;
+        _restartButton.colors = _colorBlock;
         _isGameOver = false;
+        _gameTimer = 0;
+        _gameTimerVisual.text = "0";
 
         _closedCellCount = _width * _height;
 
