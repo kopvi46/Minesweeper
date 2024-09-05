@@ -21,24 +21,43 @@ public class GridCell : MonoBehaviour
 
     private void Start()
     {
-        //mineAroundVisual.gameObject.SetActive(!isMined);
         mine.gameObject.SetActive(isMined);
-
-        //overlay.gameObject.SetActive(false);
 
         mark.gameObject.SetActive(false);
 
         if (!isMined && mineAround >= 1)
         {
             mineAroundVisual.text = mineAround.ToString();
+            switch (mineAround)
+            {
+                case 1:
+                    mineAroundVisual.color = Color.blue;
+                    break;
+                case 2:
+                    mineAroundVisual.color = Color.green;
+                    break;
+                case 3:
+                    mineAroundVisual.color = Color.red;
+                    break;
+                case 4:
+                    mineAroundVisual.color = Color.black;
+                    break;
+                case 5:
+                    mineAroundVisual.color = Color.yellow;
+                    break;
+                case 6:
+                    mineAroundVisual.color = Color.cyan;
+                    break;
+                case 7:
+                    mineAroundVisual.color = Color.grey;
+                    break;
+                case 8:
+                    mineAroundVisual.color = Color.magenta;
+                    break;
+            }
         } else
         {
             mineAroundVisual.gameObject.SetActive(false);
         }
-    }
-
-    public override string ToString()
-    {
-        return isMarked.ToString();
     }
 }

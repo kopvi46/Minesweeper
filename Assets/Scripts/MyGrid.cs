@@ -2,8 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using TMPro;
 using Unity.VisualScripting.Antlr3.Runtime;
 using UnityEngine;
+using UnityEngine.Timeline;
+using UnityEngine.UI;
 
 public class MyGrid : MonoBehaviour
 {
@@ -20,13 +23,88 @@ public class MyGrid : MonoBehaviour
     [SerializeField] private int _fontSize;
     [SerializeField] private int _maxMineAmount;
     [SerializeField] private Transform _gridCellPrefab;
+    [SerializeField] private TextMeshProUGUI _mineLeftAmountVisual;
+    [SerializeField] private Button _restartButton;
 
     private GridCell[,] _gridArray;
+    private int _mineLeftAmount;
     private int _closedCellCount;
+    private bool _isGameOver = false;
+    private ColorBlock colorBlock;
 
     private void Start()
     {
         transform.position -= new Vector3(_width / 2, _height / 2, 0);
+
+        colorBlock = _restartButton.colors;
+
+        StartNewGame();
+
+        OnGridOpen += MyGrid_OnGridOpen;
+    }
+
+    private void MyGrid_OnGridOpen(object sender, OnGridOpenEventArgs e)
+    {
+        if (GetGridCell(e.x, e.y).isMined)
+        {
+            Debug.Log("You have lost!");
+
+            _isGameOver = true;
+
+            colorBlock.normalColor = Color.red;
+            _restartButton.colors = colorBlock;
+        }
+
+        if (_closedCellCount == _maxMineAmount)
+        {
+            Debug.Log("You have won!");
+            
+            _isGameOver = true;
+        }
+    }
+
+    private void Update()
+    {
+        if (Input.GetMouseButtonDown(0) && !_isGameOver)
+        {
+            Vector3 mouseWorldPosition = MyUtils.GetMouse2DWorldPosition();
+            GetXY(mouseWorldPosition, out int x, out int y);
+
+            OpenGridCell(x, y);
+        }
+
+        if (Input.GetMouseButtonDown(1) && !_isGameOver)
+        {
+            Vector3 mouseWorldPosition = MyUtils.GetMouse2DWorldPosition();
+            GetXY(mouseWorldPosition, out int x, out int y);
+
+            GridCell currentGridCell = GetGridCell(x, y);
+
+            if (currentGridCell != null && !currentGridCell.isOpen)
+            {
+                currentGridCell.isMarked = !currentGridCell.isMarked;
+
+                currentGridCell.mark.gameObject.SetActive(currentGridCell.isMarked);
+
+                if (currentGridCell.isMarked)
+                {
+                    _mineLeftAmount--;
+                } else
+                {
+                    _mineLeftAmount++;
+                }
+
+                _mineLeftAmountVisual.text = _mineLeftAmount.ToString();
+            }
+        }
+    }
+
+    private void StartNewGame()
+    {
+        colorBlock.normalColor = Color.green;
+        _restartButton.colors = colorBlock;
+        _isGameOver = false;
+
         _closedCellCount = _width * _height;
 
         _gridArray = new GridCell[_width, _height];
@@ -53,7 +131,7 @@ public class MyGrid : MonoBehaviour
 
         for (int i = 0; i < _maxMineAmount; i++)
         {
-            GetRandomGridCell(out int x, out int y);
+            GetRandomUnminedGridCell(out int x, out int y);
 
             _gridArray[x, y].isMined = true;
         }
@@ -66,96 +144,20 @@ public class MyGrid : MonoBehaviour
             }
         }
 
-        OnGridOpen += MyGrid_OnGridOpen;
+        _mineLeftAmount = _maxMineAmount;
+        _mineLeftAmountVisual.text = _mineLeftAmount.ToString();
     }
 
-    //private void Start()
-    //{
-    //    _gridArray = new GridCell[_width, _height];
-
-    //    //int mineAmount = 0;
-
-    //    for (int x = 0;  x < _gridArray.GetLength(0); x++)
-    //    {
-    //        for (int y = 0; y < _gridArray.GetLength(1); y++)
-    //        {
-    //            GridCell newGridCell = new GridCell(x, y);
-
-    //            //if (mineAmount <  _maxMineAmount)
-    //            //{
-    //            //    System.Random random = new System.Random();
-    //            //    newGridCell.isMined = random.Next(0, 2) == 0;
-
-    //            //    if (newGridCell.isMined) mineAmount++;
-    //            //}
-
-
-    //            _gridArray[x, y] = newGridCell;
-    //        }
-    //    }
-
-    //    bool showDebug = true;
-    //    if (showDebug)
-    //    {
-    //        TextMesh[,] debugTextArray = new TextMesh[_width, _height];
-
-    //        for (int x = 0; x < _gridArray.GetLength(0); x++)
-    //        {
-    //            for (int y = 0; y < _gridArray.GetLength(1); y++)
-    //            {
-    //                debugTextArray[x, y] = MyUtils.CreateWorldText(_gridArray[x, y]?.ToString(), null, GetWorldPosition(x, y) + new Vector3(_cellSize, _cellSize, 0) * .5f, _fontSize, Color.white, TextAnchor.MiddleCenter);
-    //                Debug.DrawLine(GetWorldPosition(x, y), GetWorldPosition(x, y + 1), Color.white, 100f);
-    //                Debug.DrawLine(GetWorldPosition(x, y), GetWorldPosition(x + 1, y), Color.white, 100f);
-
-    //            }
-    //        }
-    //        Debug.DrawLine(GetWorldPosition(0, _height), GetWorldPosition(_width, _height), Color.white, 100f);
-    //        Debug.DrawLine(GetWorldPosition(_width, 0), GetWorldPosition(_width, _height), Color.white, 100f);
-
-    //        OnGridValueChanged += (object sender, OnGridValueChangedEventArgs eventArgs) =>
-    //        {
-    //            debugTextArray[eventArgs.x, eventArgs.y].text = _gridArray[eventArgs.x, eventArgs.y]?.ToString();
-    //        };
-    //    }
-
-    //    OnGridValueChanged += MyGrid_OnGridValueChanged;
-    //}
-
-    private void MyGrid_OnGridOpen(object sender, OnGridOpenEventArgs e)
+    public void RestartGame()
     {
-        if (GetGridCell(e.x, e.y).isMined)
+        _gridArray = null;
+        
+        foreach (Transform child in transform)
         {
-            Debug.Log("You have lost!");
+            GameObject.Destroy(child.gameObject);
         }
 
-        if (_closedCellCount == _maxMineAmount)
-        {
-            Debug.Log("You have won!");
-        }
-
-    }
-
-    private void Update()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            Vector3 mouseWorldPosition = MyUtils.GetMouse2DWorldPosition();
-            GetXY(mouseWorldPosition, out int x, out int y);
-
-            OpenGridCell(x, y);
-        }
-
-        if (Input.GetMouseButtonDown(1))
-        {
-            Vector3 mouseWorldPosition = MyUtils.GetMouse2DWorldPosition();
-            GetXY(mouseWorldPosition, out int x, out int y);
-            if (GetGridCell(x, y) != null && !GetGridCell(x, y).isOpen)
-            {
-                GetGridCell(x, y).isMarked = !GetGridCell(x, y).isMarked;
-
-                GetGridCell(x, y).mark.gameObject.SetActive(GetGridCell(x, y).isMarked);
-            }
-        }
+        StartNewGame();
     }
 
     private Vector3 GetWorldPosition(int x, int y)
@@ -180,7 +182,7 @@ public class MyGrid : MonoBehaviour
         }
     }
 
-    private void GetRandomGridCell(out int x, out int y)
+    private void GetRandomUnminedGridCell(out int x, out int y)
     {
         System.Random random = new System.Random();
 
@@ -189,33 +191,13 @@ public class MyGrid : MonoBehaviour
 
         if (_gridArray[x, y].isMined)
         {
-            GetRandomGridCell(out x, out y);
+            GetRandomUnminedGridCell(out x, out y);
         }
     }
 
     private int GetMineAroundAmount(int x, int y)
     {
         int amount = 0;
-
-        //if (GetGridCell(x, y) != null)
-        //{
-        //    //Top left
-        //    if (GetGridCell(x - 1, y + 1) != null && GetGridCell(x - 1, y + 1).isMined) amount++;
-        //    //Top
-        //    if (GetGridCell(x, y + 1) != null && GetGridCell(x, y + 1).isMined) amount++;
-        //    //Top right
-        //    if (GetGridCell(x + 1, y + 1) != null && GetGridCell(x + 1, y + 1).isMined) amount++;
-        //    //Right
-        //    if (GetGridCell(x + 1, y) != null && GetGridCell(x + 1, y).isMined) amount++;
-        //    //Bottom right
-        //    if (GetGridCell(x + 1, y - 1) != null && GetGridCell(x + 1, y - 1).isMined) amount++;
-        //    //Bottom
-        //    if (GetGridCell(x, y - 1) != null && GetGridCell(x, y - 1).isMined) amount++;
-        //    //Bottom left
-        //    if (GetGridCell(x - 1, y - 1) != null && GetGridCell(x - 1, y - 1).isMined) amount++;
-        //    //Left
-        //    if (GetGridCell(x - 1, y) != null && GetGridCell(x - 1, y).isMined) amount++;
-        //}
 
         foreach(GridCell gridCell in GetNeighboursGridCellList(x, y))
         {
@@ -256,7 +238,7 @@ public class MyGrid : MonoBehaviour
     {
         GridCell currentGridCell = GetGridCell(x, y);
 
-        if (currentGridCell != null && !currentGridCell.isMarked)
+        if (currentGridCell != null && !currentGridCell.isMarked && !currentGridCell.isOpen)
         {
             _closedCellCount--;
 
@@ -278,37 +260,4 @@ public class MyGrid : MonoBehaviour
             }
         }
     }
-
-    //private void OpenGridCell(int x, int y)
-    //{
-    //    Stack<GridCell> cellsToOpen = new Stack<GridCell>();
-    //    cellsToOpen.Push(GetGridCell(x, y));
-
-    //    while (cellsToOpen.Count > 0)
-    //    {
-    //        GridCell currentGridCell = GetGridCell(x, y);
-
-    //        if (currentGridCell != null && !currentGridCell.isMarked)
-    //        {
-    //            _closedCellCount--;
-
-    //            currentGridCell.isOpen = true;
-
-    //            currentGridCell.overlay.gameObject.SetActive(false);
-
-    //            OnGridOpen?.Invoke(this, new OnGridOpenEventArgs { x = x, y = y });
-
-    //            if (!currentGridCell.isMined && currentGridCell.mineAround == 0)
-    //            {
-    //                foreach (GridCell gridCell in GetNeighboursGridCellList(currentGridCell.x, currentGridCell.y))
-    //                {
-    //                    if (!gridCell.isOpen)
-    //                    {
-    //                        cellsToOpen.Push(gridCell);
-    //                    }
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
 }
