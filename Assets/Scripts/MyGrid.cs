@@ -82,7 +82,7 @@ public class MyGrid : MonoBehaviour
             Vector3 mouseWorldPosition = MyUtils.GetMouse2DWorldPosition();
             GetXY(mouseWorldPosition, out int x, out int y);
 
-            if (GetGridCell(x, y) != null && !GetGridCell(x, y).isMarked && !GetGridCell(x, y).isOpen)
+            if (GetGridCell(x, y) != null && !GetGridCell(x, y).isMarked && !GetGridCell(x, y).isOpen && !GetGridCell(x, y).isMined)
             {
                 SoundManager.Instance.soundsSource.PlayOneShot(SoundManager.Instance.openCell);
             }
