@@ -58,6 +58,7 @@ public class MyGrid : MonoBehaviour
                 }
             }
 
+            SoundManager.Instance.soundsSource.PlayOneShot(SoundManager.Instance.gameOver);
             Debug.Log("You have lost!");
         }
 
@@ -68,6 +69,7 @@ public class MyGrid : MonoBehaviour
             _colorBlock.normalColor = Color.green;
             _restartButton.colors = _colorBlock;
 
+            SoundManager.Instance.soundsSource.PlayOneShot(SoundManager.Instance.gameWin);
             Debug.Log("You have won!");
         }
     }
@@ -79,6 +81,11 @@ public class MyGrid : MonoBehaviour
         {
             Vector3 mouseWorldPosition = MyUtils.GetMouse2DWorldPosition();
             GetXY(mouseWorldPosition, out int x, out int y);
+
+            if (GetGridCell(x, y) != null && !GetGridCell(x, y).isMarked && !GetGridCell(x, y).isOpen)
+            {
+                SoundManager.Instance.soundsSource.PlayOneShot(SoundManager.Instance.openCell);
+            }
 
             OpenGridCell(x, y);
         }
@@ -109,6 +116,8 @@ public class MyGrid : MonoBehaviour
                 }
 
                 _mineLeftAmountVisual.text = _mineLeftAmount.ToString();
+
+                SoundManager.Instance.soundsSource.PlayOneShot(SoundManager.Instance.markCell);
             }
         }
 
@@ -172,6 +181,8 @@ public class MyGrid : MonoBehaviour
         //Update mines count
         _mineLeftAmount = _maxMineAmount;
         _mineLeftAmountVisual.text = _mineLeftAmount.ToString();
+
+        SoundManager.Instance.soundsSource.PlayOneShot(SoundManager.Instance.gameStart);
     }
 
     public void RestartGame()
